@@ -30,15 +30,11 @@ object ExerciseAppModule {
     @Provides
     fun provideListItemDao(db: ExerciseAppDb): ListItemDao = db.listItemDao()
 
+    @Singleton
     @Provides
     fun provideListItemRepository(api : ListApi ,listItemDao: ListItemDao): ListItemRepository = ListItemRepository(api,listItemDao)
 
 
-//    @Provides
-//    fun provideOkHttpClient() : OkHttpClient = OkHttpClient
-//        .Builder().connectTimeout(10000L, TimeUnit.MILLISECONDS)
-//        .readTimeout(10000L, TimeUnit.MILLISECONDS)
-//        .writeTimeout(10000L, TimeUnit.MILLISECONDS).build()
 
     @Singleton
     @Provides
