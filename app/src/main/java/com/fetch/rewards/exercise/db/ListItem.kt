@@ -1,4 +1,4 @@
-package com.fetch.rewards.exercise
+package com.fetch.rewards.exercise.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
