@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+//    implementation(libs.androidx.ui.text.google.fonts)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -78,4 +79,11 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
+
+    implementation("androidx.navigation:navigation-compose:2.7.1")
+
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.8.3")
 }
