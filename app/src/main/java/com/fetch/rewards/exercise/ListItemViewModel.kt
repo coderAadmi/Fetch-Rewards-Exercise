@@ -1,26 +1,22 @@
 package com.fetch.rewards.exercise
 
-import android.util.Log
-import androidx.compose.runtime.collectAsState
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fetch.rewards.exercise.db.ListItem
+import com.fetch.rewards.exercise.network.ApiResultFailure
+import com.fetch.rewards.exercise.network.ConnectivityService
+import com.fetch.rewards.exercise.network.ConnectivityStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.collections.groupBy
 
 @HiltViewModel
-class ListItemViewModel @Inject constructor(private val listItemRepository: ListItemRepository) : ViewModel(){
+class ListItemViewModel @Inject constructor(private val listItemRepository: ListItemRepository,
+    private val connectivityService: ConnectivityService
+) : ViewModel(){
 
     val searchState : StateFlow<String> = listItemRepository.searchState
 
@@ -32,11 +28,18 @@ class ListItemViewModel @Inject constructor(private val listItemRepository: List
 
     val filteredListState : StateFlow<List<ListItem>> = listItemRepository.filteredListState
 
+    val apiResultFailure : StateFlow<ApiResultFailure> = listItemRepository.apiResult
+
     init {
+            getListItems()
+
+    }
+
+    fun refresh(){
         getListItems()
     }
 
-    fun getListItems(){
+    private fun getListItems(){
         listItemRepository.getListItems(viewModelScope)
     }
 
@@ -62,4 +65,10 @@ class ListItemViewModel @Inject constructor(private val listItemRepository: List
         return listState.value
             .groupBy({ it.listId }, { it })
     }
+
+    fun getConnectionStatus() = connectivityService.connectionStatus.stateIn(viewModelScope,
+        SharingStarted.WhileSubscribed(5000), ConnectivityStatus.Unknown)
+
+
+
 }

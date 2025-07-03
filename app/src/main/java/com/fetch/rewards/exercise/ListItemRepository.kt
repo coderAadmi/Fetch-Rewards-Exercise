@@ -1,6 +1,11 @@
 package com.fetch.rewards.exercise
 
 import android.util.Log
+import com.fetch.rewards.exercise.db.ListItem
+import com.fetch.rewards.exercise.db.ListItemDao
+import com.fetch.rewards.exercise.network.ApiResultFailure
+import com.fetch.rewards.exercise.network.ConnectivityService
+import com.fetch.rewards.exercise.network.ListApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -12,37 +17,51 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.UnknownHostException
 import javax.inject.Inject
 
-class ListItemRepository @Inject constructor(private val api: ListApi, private val listItemDao: ListItemDao) {
+class ListItemRepository @Inject constructor(
+    private val api: ListApi,
+    private val listItemDao: ListItemDao,
+    private val connectivityService: ConnectivityService
+) {
     fun getAllListItems(): Flow<Result<List<ListItem>>> = flow {
         emit(Result.Loading)
         try {
-            Log.d("RES_CALL", "Method called")
-            getDataFromNetwork()
+            if (getDataFromNetwork()) {
+                val localData = withContext(Dispatchers.IO) {
+                    listItemDao.getAllListItems()
+                }
+                emit(Result.Success(localData))
+            }
+
         } catch (e: Exception) {
             Log.d("RES_CALL_E", e.toString())
-            emit(Result.Failure(e))
+            val localData = withContext(Dispatchers.IO) {
+                listItemDao.getAllListItems()
+            }
+            if (localData.isNullOrEmpty()) {
+                emit(Result.Failure(e))
+            } else
+                emit(Result.OfflineSucces(localData))
         }
-        val localData = withContext(Dispatchers.IO) {
-            listItemDao.getAllListItems()
-        }
-        emit(Result.Success(localData))
+
 
     }
 
-    suspend fun getDataFromNetwork() {
-
+    suspend fun getDataFromNetwork(): Boolean {
         Log.d("RES_CALL_", "Invoked")
         val response = api.getListItems()
         Log.d("RES_CALL", "DONE")
         if (response.isSuccessful) {
             Log.d("RES_CALL_S", response.body().toString())
             listItemDao.insert(response.body()!!)
+            return true
         } else {
             Log.d("RES_CALL", "response status " + response.message())
             throw Exception("API error occurred")
         }
+        return false
     }
 
 
@@ -52,11 +71,14 @@ class ListItemRepository @Inject constructor(private val api: ListApi, private v
     private val _isFilterActive = MutableStateFlow<Boolean>(false)
     val isFilterActive: StateFlow<Boolean> = _isFilterActive.asStateFlow()
 
-    private val _isDefaultTypeSelected = MutableStateFlow<Boolean>(true)
+    private val _isDefaultTypeSelected = MutableStateFlow<Boolean>(false)
     val isDefaultTypeSelected: StateFlow<Boolean> = _isDefaultTypeSelected.asStateFlow()
 
     private val _listState = MutableStateFlow<List<ListItem>>(emptyList())
     val listState: StateFlow<List<ListItem>> = _listState.asStateFlow()
+
+    private val _apiResult = MutableStateFlow<ApiResultFailure>(ApiResultFailure.Unknown)
+    val apiResult: StateFlow<ApiResultFailure> = _apiResult.asStateFlow()
 
     val _filteredListState: MutableStateFlow<List<ListItem>> =
         MutableStateFlow<List<ListItem>>(emptyList())
@@ -76,7 +98,7 @@ class ListItemRepository @Inject constructor(private val api: ListApi, private v
     fun setSearchValue(value: String) {
         _searchState.value = value
         if (value.isNotEmpty() && value.length > 2) {
-            if(!isFilterActive.value)
+            if (!isFilterActive.value)
                 setFilterActiveStatus(true)
             applyFilter()
         } else {
@@ -106,16 +128,26 @@ class ListItemRepository @Inject constructor(private val api: ListApi, private v
                     when (result) {
                         is Result.Loading -> {
                             Log.d("RES_CALL", "Loading")
+                            _apiResult.value = ApiResultFailure.Loading
                         }
 
                         is Result.Success -> {
                             Log.d("RES_CALL", "Sucess")
-                            Log.d("RES_CALL", result.data.get(0).toString())
+                            _apiResult.value = ApiResultFailure.Success
                             _listState.value = result.data.filter { !it.name.isNullOrBlank() }
                         }
 
                         is Result.Failure -> {
-                            Log.d("RES_CALL", "Failure")
+                            if (result.e is UnknownHostException) {
+                                _apiResult.value = ApiResultFailure.NoInternetConnection
+                            } else {
+                                _apiResult.value = ApiResultFailure.Error
+                            }
+                        }
+
+                        is Result.OfflineSucces -> {
+                            _apiResult.value = ApiResultFailure.Error
+                            _listState.value = result.data.filter { !it.name.isNullOrBlank() }
                         }
                     }
                 }.launchIn(this)
