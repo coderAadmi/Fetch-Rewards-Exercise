@@ -1,6 +1,6 @@
-package com.fetch.rewards.exercise
+package com.fetch.rewards.exercise.network
 
-import kotlinx.coroutines.flow.Flow
+import com.fetch.rewards.exercise.db.ListItem
 import retrofit2.Response
 import retrofit2.http.GET
 
