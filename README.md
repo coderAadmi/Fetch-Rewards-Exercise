@@ -4,17 +4,14 @@ This is a Kotlin-based Android application that fetches and displays list items 
 
 ## 📸 Screenshots
 
-| Home (Light) | Search By Name | Dark Mode                      |
-|--------------|----------------|--------------------------------|
-| ![Home](./demo/fetch_home.png) | ![Search](./demo/fetch_by_name.png) | ![Dark](./demo/fetch_dark.png) |
-
-| Grouped By List ID                 |
-|------------------------------------|
-| ![Grouped](./demo/fetch_by_id.png) |
+| Home (Light) | Search By Name | Dark Mode                      | Grouped By List ID             |
+|--------------|----------------|--------------------------------|--------------------------------|
+| ![Home](./demo/fetch_home.png) | ![Search](./demo/fetch_by_name.png) | ![Dark](./demo/fetch_dark.png) | ![Grouped](./demo/fetch_by_id.png) |
 
 ## 🎥 Demo
-
-[![Watch the video](./demo/fetch_home.png)](./demo/fetch_exercise.mp4)
+| Home Screen         | Filter                          |
+|---------------------|---------------------------------|
+| ![List](./demo/fetch_gif_2.gif) | ![Filter](./demo/fetch_gif_1.gif) 
 
 
 ## 🚀 Features
