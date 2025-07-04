@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        val splashscreen = installSplashScreen()
+        val splashscreen = installSplashScreen().apply {  }
 
 
         var keepSplashScreen = true

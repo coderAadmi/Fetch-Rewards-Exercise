@@ -15,4 +15,10 @@ sealed class Result<out T> {
         val e:Exception
     ): Result<Nothing>()
 
+
+    data class OfflineSucces<out T>(
+        val data:T
+    ):Result<T>()
+
+
 }
